@@ -5,6 +5,7 @@ from airflow.contrib.sensors.file_sensor import FileSensor
 from airflow.operators.python_operator import PythonOperator
 from airflow.operators.bash_operator import BashOperator
 from airflow.operators.hive_operator import HiveOperator
+from airflow.contrib.operators.spark_submit_operator import SparkSubmitOperator
 import json
 import csv
 import requests
@@ -87,7 +88,7 @@ with DAG(dag_id="forex_data_pipeline",
         '''
     )
 
-    # create a table in the Hive DWh
+    # create a table in the Hive DWH
     creating_forex_rates_table = HiveOperator(
         task_id="creating_forex_rates_table",
         hive_cli_conn_id="hive_conn",
@@ -108,6 +109,13 @@ with DAG(dag_id="forex_data_pipeline",
         """
     )
 
+    # processing the forex rates with spark, conn_id, application, path_id = '/usr/local/airflow
+    transform_forex_rates = SparkSubmitOperator(
+        task_id='transform_forex_rates',
+        conn_id='spark_conn',
+        application='/usr/local/airflow/dags/scripts/forex_processing.py',
+        verbose=False
+    )
 
 # What is an operator?
 # An operator determines what actually gets done! - is a single task in a pipeline
